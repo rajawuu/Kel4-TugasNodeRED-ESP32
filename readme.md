@@ -213,5 +213,5 @@ net stop mosquitto
 | ----- | ----- | ----- | 
 | **\[Raja Ihsan S.\]** | `ruang1` | Merakit rangkaian ESP32 Ruang 1 dengan sensor I2C **AHT10** dan 2 LED, menulis program pembacaan sensor non-blocking `millis()`,menulis dan mengaplikasikan node-red dan dashboard, membantu pengambilan dan mengedit video demo, serta menyusun `README.md`. | 
 | **\[Hafiz Ahmad A.\]** | `ruang2` | Merakit rangkaian ESP32 Ruang 2 dengan **Potensiometer (ADC1 `GPIO34`)** dan 2 LED, Mengambil Video (Cameramen) , serta membuat dokumentasi PPT dan Laporan. | 
-| **\[Faris Raihan F.\]** | `ruang3` | Merakit rangkaian ESP32 Ruang 3, membantu menjadi operator dalam take video demo, menguji fitur pembukaan dashboard lewat android, serta membantu pembuatan PPT dan Laporan . | 
+| **\[Faris Raihan F.\]** | `ruang3` | Merakit rangkaian ESP32 Ruang 3, membantu menjadi operator dalam take video demo, menguji fitur pembukaan dashboard lewat android, serta membantu pembuatan PPT, Laporan dan menyusun `README.md`. |
 | **\[Nadya Labbaikatus Salsabila\]** | `ruang4` | Merakit rangkaian ESP32 Ruang 4, membantu menjadi aktor dalam pengambilan video demo ruang 1, membuat script dalam pengambilan video presesntasi, serta mengedit video presentasi. | 
