@@ -1,21 +1,21 @@
 #include <WiFi.h>
 #include <EspMQTTClient.h>
 // --- KONFIGURASI IDENTITAS KELOMPOK & RUANGAN ---
-const char *KELOMPOK = "klp4"; // Ganti sesuai nomor kelompok
-const char *ROOM = "ruang4";   // GANTI: "ruang2", "ruang3", atau "ruang4"
+const char *KELOMPOK = "klpX"; // Ganti sesuai nomor kelompok
+const char *ROOM = "ruangX";   // GANTI: "ruang2", "ruang3", atau "ruang4"
 // --- PIN POTENSIOMETER (ADC1) & AKTUATOR LED ---
 #define POTPIN 34 // Wajib pin ADC1 (GPIO 32-39) agar tidak bentrok dengan Wi-Fi
 #define LED1PIN 25
 #define LED2PIN 26
 // --- KONFIGURASI WI-FI & BROKER LOKAL MOSQUITTO ---
 EspMQTTClient client(
-    "bakayarou",     // Ganti dengan SSID Wi-Fi / Hotspot
-    "raja12345", // Ganti dengan Password Wi-Fi
-    "172.19.229.77",      // Ganti dengan IPv4 Laptop Broker Mosquitto
-    "rajapens",                   // Username MQTT (kosongkan atau isi "iotpens")
-    "raja54321",                   // Password MQTT (kosongkan atau isi "rahasia123")
-    "kuuraianto45",                   // Client ID di-set di setup()
-    1883);
+    "SSD_WIFI",      // Ganti dengan SSID Wi-Fi / Hotspot
+    "PASWORD_WIFI",  // Ganti dengan Password Wi-Fi
+    "IP_BROKER",     // Ganti dengan IPv4 Laptop Broker Mosquitto
+    "USERNAME_MQTT", // Username MQTT (kosongkan atau isi sesuai konfigurasi broker)
+    "PASWORD_MQTT",  // Password MQTT (kosongkan atau isi sesuai konfigurasi broker)
+    "Client_ID",     // Client ID di-set di setup(), TIAP DEVICE DAN WEB HARUS UNIK, contoh: "esp32-klp4-ruang1"
+    1883);           // Port default Mosquitto = 1883
 String topicTemp, topicHum, topicLamp1, topicLamp2, topicStatus;
 String topicLamp1State, topicLamp2State;
 char clientIdBuffer[32];

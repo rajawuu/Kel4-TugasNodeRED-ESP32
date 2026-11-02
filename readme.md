@@ -6,10 +6,10 @@ Sistem ini merupakan platform pemantauan suhu dan kelembapan serta kendali sakla
 
 | No | Nama Anggota | NRP | Ruangan yang Dipegang | Sensor & Aktuator Ruangan | 
 | ----- | ----- | ----- | ----- | ----- | 
-| 1 | **\[Isi Nama Anggota 1\]** | `[Isi NRP 1]` | **`ruang1`** | Sensor Digital **AHT10 (I2C)** + 2 LED (`GPIO25`, `GPIO26`) | 
-| 2 | **\[Isi Nama Anggota 2\]** | `[Isi NRP 2]` | **`ruang2`** | Sensor Analog **Potensiometer (ADC1)** + 2 LED (`GPIO25`, `GPIO26`) | 
-| 3 | **\[Isi Nama Anggota 3\]** | `[Isi NRP 3]` | **`ruang3`** | Sensor Analog **Potensiometer (ADC1)** + 2 LED (`GPIO25`, `GPIO26`) | 
-| 4 | **\[Isi Nama Anggota 4\]** | `[Isi NRP 4]` | **`ruang4`** | Sensor Analog **Potensiometer (ADC1)** + 2 LED (`GPIO25`, `GPIO26`) | 
+| 1 | **\[Raja Ihsan S\]** | `[2124600108]` | **`ruang1`** | Sensor Digital **AHT10 (I2C)** + 2 LED (`GPIO25`, `GPIO26`) | 
+| 2 | **\[Hafiz Ahmad A.\]** | `[2124600106]` | **`ruang2`** | Sensor Analog **Potensiometer (ADC1)** + 2 LED (`GPIO25`, `GPIO26`) | 
+| 3 | **\[Faris Raihan F.\]** | `[2124600102]` | **`ruang3`** | Sensor Analog **Potensiometer (ADC1)** + 2 LED (`GPIO25`, `GPIO26`) | 
+| 4 | **\[Nadia Salsabila\]** | `[2124600103]` | **`ruang4`** | Sensor Analog **Potensiometer (ADC1)** + 2 LED (`GPIO25`, `GPIO26`) | 
 
 ## 2. Link Video Demo & Video Presentasi
 
@@ -208,7 +208,7 @@ net stop mosquitto
 
 | Nama Anggota | Ruangan | Rincian Tugas & Kontribusi | 
 | ----- | ----- | ----- | 
-| **\[Isi Nama Anggota 1\]** | `ruang1` | Merakit rangkaian ESP32 Ruang 1 dengan sensor I2C **AHT10** dan 2 LED, menulis program pembacaan sensor non-blocking `millis()`, serta menguji pengiriman telemetri Ruang 1. | 
-| **\[Isi Nama Anggota 2\]** | `ruang2` | Merakit rangkaian ESP32 Ruang 2 dengan **Potensiometer (ADC1 `GPIO34`)** dan 2 LED, merumuskan konversi nilai ADC ke suhu/kelembapan, serta membuat dokumentasi skema rangkaian. | 
-| **\[Isi Nama Anggota 3\]** | `ruang3` | Merakit rangkaian ESP32 Ruang 3, menginstalasi dan mengonfigurasi **Broker Lokal Mosquitto** beserta autentikasi `mosquitto_passwd`, serta menguji fitur *Retained Message* dan **LWT** via MQTTX. | 
-| **\[Isi Nama Anggota 4\]** | `ruang4` | Merakit rangkaian ESP32 Ruang 4, membangun arsitektur *flow* *Wildcard* pada **Node-RED**, mendesain tema **Command Center Dashboard**, membuat fitur *Overheat Alert* & *State Feedback*, serta menyusun `README.md`. | 
+| **\[Raja Ihsan S.\]** | `ruang1` | Merakit rangkaian ESP32 Ruang 1 dengan sensor I2C **AHT10** dan 2 LED, menulis program pembacaan sensor non-blocking `millis()`,menulis dan mengaplikasikan node-red dan dashboard, membantu pengambilan dan mengedit video demo, serta menyusun `README.md`. | 
+| **\Hafiz Ahmad A.\]** | `ruang2` | Merakit rangkaian ESP32 Ruang 2 dengan **Potensiometer (ADC1 `GPIO34`)** dan 2 LED, Mengambil Video (Cameramen) , serta membuat dokumentasi PPT dan Laporan. | 
+| **\[Faris Raihan F.\]** | `ruang3` | Merakit rangkaian ESP32 Ruang 3, membantu menjadi operator dalam take video demo, menguji fitur pembukaan dashboard lewat android, serta membantu pembuatan PPT dan Laporan . | 
+| **\[Nadia Salsabila\]** | `ruang4` | Merakit rangkaian ESP32 Ruang 4, membantu menjadi aktor dalam pengambilan video demo ruang 1, membuat script dalam pengambilan video presesntasi, serta mengedit video presentasi. | 

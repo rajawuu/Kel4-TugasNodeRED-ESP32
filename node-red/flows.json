@@ -1,0 +1,1280 @@
+[
+    {
+        "id": "462ff919a1215d8a",
+        "type": "tab",
+        "label": "Kel4 - IoT Command Center (Wildcard Ringkas)",
+        "disabled": false,
+        "info": "Flow ringkas berbasis Wildcard (+) dan Function Router untuk Kelompok 4",
+        "env": []
+    },
+    {
+        "id": "984cf23d682eebdf",
+        "type": "mqtt in",
+        "z": "462ff919a1215d8a",
+        "name": "Sub Suhu (Semua Ruang)",
+        "topic": "pens/klp4/+/temperature",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "dd5f9e1107c0a837",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 140,
+        "wires": [
+            [
+                "8dd8c7c3992ad1f5",
+                "68fe746047badf9f"
+            ]
+        ]
+    },
+    {
+        "id": "8dd8c7c3992ad1f5",
+        "type": "debug",
+        "z": "462ff919a1215d8a",
+        "name": "Monitor Suhu",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 440,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "68fe746047badf9f",
+        "type": "function",
+        "z": "462ff919a1215d8a",
+        "name": "Router Suhu + Overheat Alert + Statistik",
+        "func": "// Output 1 -> Line Chart 4 Garis & Bar Chart\n// Output 2 -> Toast Notification (jika suhu > 32.0 C)\n// Output 3 -> Panel Ringkasan Termal Gedung\nconst parts = msg.topic.split('/');\nconst roomName = parts[2]; // ruang1 .. ruang4\nconst tempVal = parseFloat(msg.payload);\nif (isNaN(tempVal)) return null;\n\nlet roomTemps = flow.get('roomTemps') || {};\nroomTemps[roomName] = tempVal;\nflow.set('roomTemps', roomTemps);\n\nconst keys = Object.keys(roomTemps);\nlet sum = 0, maxTemp = -999, hottestRoom = '-';\nfor (let k of keys) {\n    sum += roomTemps[k];\n    if (roomTemps[k] > maxTemp) {\n        maxTemp = roomTemps[k];\n        hottestRoom = k.toUpperCase();\n    }\n}\nconst avgTemp = (sum / keys.length).toFixed(1);\n\nconst msgChart = {\n    topic: roomName.toUpperCase(),\n    payload: tempVal\n};\n\nlet msgAlert = null;\nlet lastAlert = flow.get('lastAlert_' + roomName) || 0;\nconst now = Date.now();\nif (tempVal > 32.0 && (now - lastAlert > 15000)) {\n    flow.set('lastAlert_' + roomName, now);\n    msgAlert = {\n        topic: '⚠️ PERINGATAN SUHU TINGGI (' + roomName.toUpperCase() + ')',\n        payload: 'Suhu mencapai ' + tempVal.toFixed(1) + ' °C (Melewati batas aman 32.0 °C)!'\n    };\n}\n\nconst msgStats = {\n    payload: 'Rata-rata Gedung: ' + avgTemp + ' °C   |   Suhu Tertinggi: ' + maxTemp.toFixed(1) + ' °C (' + hottestRoom + ')'\n};\n\nreturn [msgChart, msgAlert, msgStats];",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\n// Memastikan urutan warna selalu RUANG1 (Biru), RUANG2 (Hijau), RUANG3 (Kuning), RUANG4 (Merah)\nsetTimeout(() => {\n    const rooms = [\"RUANG1\", \"RUANG2\", \"RUANG3\", \"RUANG4\"];\n    // Reset grafik terlebih dahulu lalu daftarkan urutannya\n    node.send([[{ payload: [] }], null, null]);\n    for (const r of rooms) {\n        node.send([[{ topic: r, payload: null }], null, null]);\n    }\n}, 500);",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 160,
+        "wires": [
+            [
+                "6f93b63916d41e50",
+                "e63dafe2a644c8bd"
+            ],
+            [
+                "1bf7b9ee79830d3c"
+            ],
+            [
+                "ed0aa714858ea6a6"
+            ]
+        ]
+    },
+    {
+        "id": "6f93b63916d41e50",
+        "type": "ui-chart",
+        "z": "462ff919a1215d8a",
+        "group": "f130f5633cd63a61",
+        "name": "Grafik Garis Suhu 4 Ruang",
+        "label": "📈 Tren Suhu Real-Time 4 Ruangan (°C)",
+        "order": 3,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "Waktu",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "Suhu (°C)",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": 15,
+        "ymax": 45,
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "circle",
+        "pointRadius": 4,
+        "showLegend": true,
+        "removeOlder": "15",
+        "removeOlderUnit": "60",
+        "removeOlderPoints": "",
+        "colors": [
+            "#47fffc",
+            "#4ade80",
+            "#fbbf24",
+            "#f87171",
+            "#c084fc",
+            "#fb923c",
+            "#2dd4bf",
+            "#f472b6",
+            "#a3e635"
+        ],
+        "textColor": [
+            "#e2e8f0"
+        ],
+        "textColorDefault": false,
+        "gridColor": [
+            "#334155"
+        ],
+        "gridColorDefault": false,
+        "width": 6,
+        "height": 7,
+        "className": "",
+        "interpolation": "linear",
+        "x": 890,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e63dafe2a644c8bd",
+        "type": "ui-chart",
+        "z": "462ff919a1215d8a",
+        "group": "f130f5633cd63a61",
+        "name": "Grafik Batang Komparasi Suhu",
+        "label": "📊 Perbandingan Suhu Antar-Ruangan (°C)",
+        "order": 4,
+        "chartType": "bar",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "Ruangan",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "category",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "Suhu (°C)",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": 0,
+        "ymax": 45,
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "circle",
+        "pointRadius": 4,
+        "showLegend": true,
+        "removeOlder": "15",
+        "removeOlderUnit": "60",
+        "removeOlderPoints": "",
+        "colors": [
+            "#38bdf8",
+            "#4ade80",
+            "#fbbf24",
+            "#f87171",
+            "#c084fc",
+            "#fb923c",
+            "#2dd4bf",
+            "#f472b6",
+            "#a3e635"
+        ],
+        "textColor": [
+            "#e2e8f0"
+        ],
+        "textColorDefault": false,
+        "gridColor": [
+            "#334155"
+        ],
+        "gridColorDefault": false,
+        "width": 6,
+        "height": 7,
+        "className": "",
+        "interpolation": "linear",
+        "x": 890,
+        "y": 130,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1bf7b9ee79830d3c",
+        "type": "ui-notification",
+        "z": "462ff919a1215d8a",
+        "ui": "c94615b4ff7ffe30",
+        "position": "top right",
+        "colorDefault": false,
+        "color": "#ef4444",
+        "displayTime": "5",
+        "showCountdown": true,
+        "outputs": 1,
+        "allowDismiss": true,
+        "dismissText": "Tutup",
+        "allowConfirm": false,
+        "confirmText": "OK",
+        "raw": false,
+        "className": "",
+        "name": "Notifikasi Overheat (>32°C)",
+        "x": 880,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ed0aa714858ea6a6",
+        "type": "ui-text",
+        "z": "462ff919a1215d8a",
+        "group": "f130f5633cd63a61",
+        "order": 2,
+        "width": 12,
+        "height": 1,
+        "name": "Ringkasan Termal Gedung",
+        "label": "🏢 RINGKASAN TERMAL GEDUNG",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": true,
+        "font": "",
+        "fontSize": 18,
+        "color": "#f8fafc",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 880,
+        "y": 230,
+        "wires": []
+    },
+    {
+        "id": "4a68f05c7bad5e04",
+        "type": "mqtt in",
+        "z": "462ff919a1215d8a",
+        "name": "Sub Kelembapan (Semua Ruang)",
+        "topic": "pens/klp4/+/humidity",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "dd5f9e1107c0a837",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 380,
+        "wires": [
+            [
+                "b0fdc185443b380a",
+                "41c437ac050feecc"
+            ]
+        ]
+    },
+    {
+        "id": "b0fdc185443b380a",
+        "type": "debug",
+        "z": "462ff919a1215d8a",
+        "name": "Monitor Kelembapan",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 460,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "41c437ac050feecc",
+        "type": "function",
+        "z": "462ff919a1215d8a",
+        "name": "Router Kelembapan (Ruang 1 - 4)",
+        "func": "// Memecah pens/klp4/<ruang>/humidity ke 4 output Gauge secara otomatis\nconst parts = msg.topic.split('/');\nconst room = parts[2];\nconst val = parseFloat(msg.payload);\nif (isNaN(val)) return null;\n\nconst out = { payload: val };\nif (room === 'ruang1') return [out, null, null, null];\nif (room === 'ruang2') return [null, out, null, null];\nif (room === 'ruang3') return [null, null, out, null];\nif (room === 'ruang4') return [null, null, null, out];\nreturn null;",
+        "outputs": 4,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 400,
+        "wires": [
+            [
+                "605499915a5fa6a8"
+            ],
+            [
+                "a5316dceed29b69b"
+            ],
+            [
+                "7e0235334e2423f7"
+            ],
+            [
+                "7d3304f7eff5ee57"
+            ]
+        ]
+    },
+    {
+        "id": "57aeb89438efb65d",
+        "type": "mqtt in",
+        "z": "462ff919a1215d8a",
+        "name": "Sub Status LWT (Semua Ruang)",
+        "topic": "pens/klp4/+/status",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "dd5f9e1107c0a837",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 620,
+        "wires": [
+            [
+                "bc3d682a3b592e85",
+                "d3e4dec3d751168d"
+            ]
+        ]
+    },
+    {
+        "id": "bc3d682a3b592e85",
+        "type": "debug",
+        "z": "462ff919a1215d8a",
+        "name": "Monitor Status LWT",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 450,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "d3e4dec3d751168d",
+        "type": "function",
+        "z": "462ff919a1215d8a",
+        "name": "Router & Badge Status (Ruang 1 - 4)",
+        "func": "// Mengubah 'online'/'offline' menjadi Badge Visual & merutekan ke Ruang 1-4\nconst parts = msg.topic.split('/');\nconst room = parts[2];\nconst raw = String(msg.payload).trim().toLowerCase();\nconst badge = (raw === 'online') ? '🟢 ONLINE (Tersambung)' : '🔴 OFFLINE (Terputus)';\nconst out = { payload: badge };\n\nif (room === 'ruang1') return [out, null, null, null];\nif (room === 'ruang2') return [null, out, null, null];\nif (room === 'ruang3') return [null, null, out, null];\nif (room === 'ruang4') return [null, null, null, out];\nreturn null;",
+        "outputs": 4,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 640,
+        "wires": [
+            [
+                "4b346340719f9ce0"
+            ],
+            [
+                "11ae477657a39caa"
+            ],
+            [
+                "24b5a93f7f770658"
+            ],
+            [
+                "10b12c4c35573b70"
+            ]
+        ]
+    },
+    {
+        "id": "246d9745bdb927d4",
+        "type": "mqtt in",
+        "z": "462ff919a1215d8a",
+        "name": "Sub State Lampu (Semua Ruang)",
+        "topic": "pens/klp4/+/+/state",
+        "qos": "0",
+        "datatype": "utf8",
+        "broker": "dd5f9e1107c0a837",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 900,
+        "wires": [
+            [
+                "0db971ce3fa086c8",
+                "93c2af96c08d8d95"
+            ]
+        ]
+    },
+    {
+        "id": "0db971ce3fa086c8",
+        "type": "debug",
+        "z": "462ff919a1215d8a",
+        "name": "Monitor State Lampu",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": true,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "payload",
+        "statusType": "auto",
+        "x": 460,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "93c2af96c08d8d95",
+        "type": "function",
+        "z": "462ff919a1215d8a",
+        "name": "Router State 8 Saklar Lampu",
+        "func": "// Merutekan state fisik LED (pens/klp4/ruangN/lampM/state) ke 8 Switch UI\nconst parts = msg.topic.split('/');\nconst key = parts[2] + '_' + parts[3]; // misal: ruang1_lamp1\nconst val = String(msg.payload).trim();\nconst out = { payload: val };\n\nconst map = [\n    'ruang1_lamp1', 'ruang1_lamp2',\n    'ruang2_lamp1', 'ruang2_lamp2',\n    'ruang3_lamp1', 'ruang3_lamp2',\n    'ruang4_lamp1', 'ruang4_lamp2'\n];\nconst res = [null, null, null, null, null, null, null, null];\nconst idx = map.indexOf(key);\nif (idx !== -1) res[idx] = out;\nreturn res;",
+        "outputs": 8,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 920,
+        "wires": [
+            [
+                "e58665a602f672a9"
+            ],
+            [
+                "5570c984bfb625ac"
+            ],
+            [
+                "b28f11e9c93e24f8"
+            ],
+            [
+                "b467e8f4381bafc1"
+            ],
+            [
+                "2a3b5b26c636bf77"
+            ],
+            [
+                "209a42832779d557"
+            ],
+            [
+                "579de1ceb6db79b2"
+            ],
+            [
+                "e395bb1cb43cdbb0"
+            ]
+        ]
+    },
+    {
+        "id": "7ce975dcf8a24b7a",
+        "type": "mqtt out",
+        "z": "462ff919a1215d8a",
+        "name": "Publish Perintah Lampu (Dinamis via msg.topic, QoS 1)",
+        "topic": "",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "dd5f9e1107c0a837",
+        "x": 1190,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "bbba7e401e32b9a1",
+        "type": "ui-template",
+        "z": "462ff919a1215d8a",
+        "group": "",
+        "page": "",
+        "ui": "c94615b4ff7ffe30",
+        "name": "Tema Cyber Command Center (Global CSS)",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "/* Background utama gelap bergaya Command Center */\n.v-main {\n    background: radial-gradient(circle at top, #0f172a 0%, #090d16 100%) !important;\n    color: #f8fafc !important;\n}\n\n/* Tampilan kartu tiap Group Ruangan */\n.nrdb-ui-group .v-card {\n    background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)) !important;\n    border: 1px solid rgba(56, 189, 248, 0.35) !important;\n    border-radius: 16px !important;\n    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5) !important;\n    padding: 6px !important;\n    color: #f8fafc !important;\n}\n\n/* Judul Group Ruangan (Ruang 1 - 4 & Analitik) */\n.nrdb-ui-group .v-card-title {\n    color: #38bdf8 !important;\n    font-size: 1.05rem !important;\n    font-weight: 800 !important;\n    letter-spacing: 0.8px !important;\n    text-transform: uppercase !important;\n    border-bottom: 1px solid rgba(56, 189, 248, 0.25) !important;\n    padding-bottom: 10px !important;\n    margin-bottom: 10px !important;\n}\n\n/* Header Bar Atas */\n.v-app-bar {\n    background: linear-gradient(90deg, #0f172a 0%, #1e3a8a 100%) !important;\n    border-bottom: 1px solid rgba(56, 189, 248, 0.45) !important;\n    color: #ffffff !important;\n}\n.v-app-bar-title {\n    color: #f8fafc !important;\n    font-weight: 800 !important;\n    letter-spacing: 0.5px !important;\n}\n\n/* Perjelas teks label pada Text & Switch */\n.nrdb-ui-text, .nrdb-ui-switch {\n    background: rgba(15, 23, 42, 0.65) !important;\n    border: 1px solid rgba(148, 163, 184, 0.18) !important;\n    border-radius: 10px !important;\n    padding: 8px 14px !important;\n}\n.nrdb-ui-switch:hover {\n    border-color: rgba(56, 189, 248, 0.6) !important;\n    background: rgba(30, 41, 59, 0.9) !important;\n    cursor: pointer !important;\n}\n.nrdb-ui-text-label, .nrdb-ui-switch label, .v-label {\n    color: #e2e8f0 !important;\n    font-weight: 600 !important;\n    font-size: 0.95rem !important;\n    opacity: 1 !important;\n}\n.nrdb-ui-text-value {\n    color: #38bdf8 !important;\n    font-weight: 800 !important;\n    font-size: 1.05rem !important;\n}\n\n/* Gauge teks & angka tengah lebih besar dan terang */\n.nrdb-ui-gauge text {\n    fill: #f8fafc !important;\n    font-weight: 700 !important;\n}\n",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "site:style",
+        "className": "",
+        "x": 210,
+        "y": 1080,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "605499915a5fa6a8",
+        "type": "ui-gauge",
+        "z": "462ff919a1215d8a",
+        "name": "Gauge Ruang 1",
+        "group": "b01eaf7af856cc55",
+        "order": 3,
+        "value": "payload",
+        "valueType": "msg",
+        "width": 6,
+        "height": 5,
+        "gtype": "gauge-34",
+        "gstyle": "needle",
+        "title": "💧 Kelembapan Ruang 1",
+        "alwaysShowTitle": true,
+        "floatingTitlePosition": "top-left",
+        "units": "%RH",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": 0,
+                "color": "#38bdf8",
+                "text": "Kering",
+                "textType": "label"
+            },
+            {
+                "from": 35,
+                "color": "#4ade80",
+                "text": "Ideal",
+                "textType": "label"
+            },
+            {
+                "from": 75,
+                "color": "#f87171",
+                "text": "Lembap",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 100,
+        "sizeThickness": 22,
+        "sizeGap": 4,
+        "sizeKeyThickness": 10,
+        "styleRounded": true,
+        "styleGlow": true,
+        "className": "",
+        "x": 830,
+        "y": 330,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4b346340719f9ce0",
+        "type": "ui-text",
+        "z": "462ff919a1215d8a",
+        "group": "b01eaf7af856cc55",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "name": "Status Ruang 1",
+        "label": "📡 Status Node ESP32",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": true,
+        "font": "",
+        "fontSize": 15,
+        "color": "#f8fafc",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 830,
+        "y": 570,
+        "wires": []
+    },
+    {
+        "id": "e58665a602f672a9",
+        "type": "ui-switch",
+        "z": "462ff919a1215d8a",
+        "name": "Ruang 1 - Lampu 1",
+        "label": "💡 Lampu 1",
+        "group": "b01eaf7af856cc55",
+        "order": 4,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "decouple": false,
+        "topic": "pens/klp4/ruang1/lamp1",
+        "topicType": "str",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "line",
+        "onvalue": "1",
+        "onvalueType": "str",
+        "onicon": "lightbulb",
+        "oncolor": "#22c55e",
+        "offvalue": "0",
+        "offvalueType": "str",
+        "officon": "lightbulb-outline",
+        "offcolor": "#64748b",
+        "x": 810,
+        "y": 780,
+        "wires": [
+            [
+                "7ce975dcf8a24b7a"
+            ]
+        ]
+    },
+    {
+        "id": "5570c984bfb625ac",
+        "type": "ui-switch",
+        "z": "462ff919a1215d8a",
+        "name": "Ruang 1 - Lampu 2",
+        "label": "💡 Lampu 2",
+        "group": "b01eaf7af856cc55",
+        "order": 5,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "decouple": false,
+        "topic": "pens/klp4/ruang1/lamp2",
+        "topicType": "str",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "line",
+        "onvalue": "1",
+        "onvalueType": "str",
+        "onicon": "lightbulb",
+        "oncolor": "#22c55e",
+        "offvalue": "0",
+        "offvalueType": "str",
+        "officon": "lightbulb-outline",
+        "offcolor": "#64748b",
+        "x": 810,
+        "y": 825,
+        "wires": [
+            [
+                "7ce975dcf8a24b7a"
+            ]
+        ]
+    },
+    {
+        "id": "a5316dceed29b69b",
+        "type": "ui-gauge",
+        "z": "462ff919a1215d8a",
+        "name": "Gauge Ruang 2",
+        "group": "427fbc273caee0db",
+        "order": 3,
+        "value": "payload",
+        "valueType": "msg",
+        "width": 6,
+        "height": 5,
+        "gtype": "gauge-34",
+        "gstyle": "needle",
+        "title": "💧 Kelembapan Ruang 2",
+        "alwaysShowTitle": true,
+        "floatingTitlePosition": "top-left",
+        "units": "%RH",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": 0,
+                "color": "#38bdf8",
+                "text": "Kering",
+                "textType": "label"
+            },
+            {
+                "from": 35,
+                "color": "#4ade80",
+                "text": "Ideal",
+                "textType": "label"
+            },
+            {
+                "from": 75,
+                "color": "#f87171",
+                "text": "Lembap",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 100,
+        "sizeThickness": 22,
+        "sizeGap": 4,
+        "sizeKeyThickness": 10,
+        "styleRounded": true,
+        "styleGlow": true,
+        "className": "",
+        "x": 830,
+        "y": 380,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "11ae477657a39caa",
+        "type": "ui-text",
+        "z": "462ff919a1215d8a",
+        "group": "427fbc273caee0db",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "name": "Status Ruang 2",
+        "label": "📡 Status Node ESP32",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": true,
+        "font": "",
+        "fontSize": 15,
+        "color": "#f8fafc",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 830,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "b28f11e9c93e24f8",
+        "type": "ui-switch",
+        "z": "462ff919a1215d8a",
+        "name": "Ruang 2 - Lampu 1",
+        "label": "💡 Lampu 1",
+        "group": "427fbc273caee0db",
+        "order": 4,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "decouple": false,
+        "topic": "pens/klp4/ruang2/lamp1",
+        "topicType": "str",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "line",
+        "onvalue": "1",
+        "onvalueType": "str",
+        "onicon": "lightbulb",
+        "oncolor": "#22c55e",
+        "offvalue": "0",
+        "offvalueType": "str",
+        "officon": "lightbulb-outline",
+        "offcolor": "#64748b",
+        "x": 810,
+        "y": 870,
+        "wires": [
+            [
+                "7ce975dcf8a24b7a"
+            ]
+        ]
+    },
+    {
+        "id": "b467e8f4381bafc1",
+        "type": "ui-switch",
+        "z": "462ff919a1215d8a",
+        "name": "Ruang 2 - Lampu 2",
+        "label": "💡 Lampu 2",
+        "group": "427fbc273caee0db",
+        "order": 5,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "decouple": false,
+        "topic": "pens/klp4/ruang2/lamp2",
+        "topicType": "str",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "line",
+        "onvalue": "1",
+        "onvalueType": "str",
+        "onicon": "lightbulb",
+        "oncolor": "#22c55e",
+        "offvalue": "0",
+        "offvalueType": "str",
+        "officon": "lightbulb-outline",
+        "offcolor": "#64748b",
+        "x": 810,
+        "y": 915,
+        "wires": [
+            [
+                "7ce975dcf8a24b7a"
+            ]
+        ]
+    },
+    {
+        "id": "7e0235334e2423f7",
+        "type": "ui-gauge",
+        "z": "462ff919a1215d8a",
+        "name": "Gauge Ruang 3",
+        "group": "6e74a6594d898dc4",
+        "order": 3,
+        "value": "payload",
+        "valueType": "msg",
+        "width": 6,
+        "height": 5,
+        "gtype": "gauge-34",
+        "gstyle": "needle",
+        "title": "💧 Kelembapan Ruang 3",
+        "alwaysShowTitle": true,
+        "floatingTitlePosition": "top-left",
+        "units": "%RH",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": 0,
+                "color": "#38bdf8",
+                "text": "Kering",
+                "textType": "label"
+            },
+            {
+                "from": 35,
+                "color": "#4ade80",
+                "text": "Ideal",
+                "textType": "label"
+            },
+            {
+                "from": 75,
+                "color": "#f87171",
+                "text": "Lembap",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 100,
+        "sizeThickness": 22,
+        "sizeGap": 4,
+        "sizeKeyThickness": 10,
+        "styleRounded": true,
+        "styleGlow": true,
+        "className": "",
+        "x": 830,
+        "y": 430,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "24b5a93f7f770658",
+        "type": "ui-text",
+        "z": "462ff919a1215d8a",
+        "group": "6e74a6594d898dc4",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "name": "Status Ruang 3",
+        "label": "📡 Status Node ESP32",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": true,
+        "font": "",
+        "fontSize": 15,
+        "color": "#f8fafc",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 830,
+        "y": 670,
+        "wires": []
+    },
+    {
+        "id": "2a3b5b26c636bf77",
+        "type": "ui-switch",
+        "z": "462ff919a1215d8a",
+        "name": "Ruang 3 - Lampu 1",
+        "label": "💡 Lampu 1",
+        "group": "6e74a6594d898dc4",
+        "order": 4,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "decouple": false,
+        "topic": "pens/klp4/ruang3/lamp1",
+        "topicType": "str",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "line",
+        "onvalue": "1",
+        "onvalueType": "str",
+        "onicon": "lightbulb",
+        "oncolor": "#22c55e",
+        "offvalue": "0",
+        "offvalueType": "str",
+        "officon": "lightbulb-outline",
+        "offcolor": "#64748b",
+        "x": 810,
+        "y": 960,
+        "wires": [
+            [
+                "7ce975dcf8a24b7a"
+            ]
+        ]
+    },
+    {
+        "id": "209a42832779d557",
+        "type": "ui-switch",
+        "z": "462ff919a1215d8a",
+        "name": "Ruang 3 - Lampu 2",
+        "label": "💡 Lampu 2",
+        "group": "6e74a6594d898dc4",
+        "order": 5,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "decouple": false,
+        "topic": "pens/klp4/ruang3/lamp2",
+        "topicType": "str",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "line",
+        "onvalue": "1",
+        "onvalueType": "str",
+        "onicon": "lightbulb",
+        "oncolor": "#22c55e",
+        "offvalue": "0",
+        "offvalueType": "str",
+        "officon": "lightbulb-outline",
+        "offcolor": "#64748b",
+        "x": 810,
+        "y": 1005,
+        "wires": [
+            [
+                "7ce975dcf8a24b7a"
+            ]
+        ]
+    },
+    {
+        "id": "7d3304f7eff5ee57",
+        "type": "ui-gauge",
+        "z": "462ff919a1215d8a",
+        "name": "Gauge Ruang 4",
+        "group": "ec79c81ce69dd24f",
+        "order": 3,
+        "value": "payload",
+        "valueType": "msg",
+        "width": 6,
+        "height": 5,
+        "gtype": "gauge-34",
+        "gstyle": "needle",
+        "title": "💧 Kelembapan Ruang 4",
+        "alwaysShowTitle": true,
+        "floatingTitlePosition": "top-left",
+        "units": "%RH",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": 0,
+                "color": "#38bdf8",
+                "text": "Kering",
+                "textType": "label"
+            },
+            {
+                "from": 35,
+                "color": "#4ade80",
+                "text": "Ideal",
+                "textType": "label"
+            },
+            {
+                "from": 75,
+                "color": "#f87171",
+                "text": "Lembap",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 100,
+        "sizeThickness": 22,
+        "sizeGap": 4,
+        "sizeKeyThickness": 10,
+        "styleRounded": true,
+        "styleGlow": true,
+        "className": "",
+        "x": 830,
+        "y": 480,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "10b12c4c35573b70",
+        "type": "ui-text",
+        "z": "462ff919a1215d8a",
+        "group": "ec79c81ce69dd24f",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "name": "Status Ruang 4",
+        "label": "📡 Status Node ESP32",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": true,
+        "font": "",
+        "fontSize": 15,
+        "color": "#f8fafc",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 830,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "579de1ceb6db79b2",
+        "type": "ui-switch",
+        "z": "462ff919a1215d8a",
+        "name": "Ruang 4 - Lampu 1",
+        "label": "💡 Lampu 1",
+        "group": "ec79c81ce69dd24f",
+        "order": 4,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "decouple": false,
+        "topic": "pens/klp4/ruang4/lamp1",
+        "topicType": "str",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "line",
+        "onvalue": "1",
+        "onvalueType": "str",
+        "onicon": "lightbulb",
+        "oncolor": "#22c55e",
+        "offvalue": "0",
+        "offvalueType": "str",
+        "officon": "lightbulb-outline",
+        "offcolor": "#64748b",
+        "x": 810,
+        "y": 1050,
+        "wires": [
+            [
+                "7ce975dcf8a24b7a"
+            ]
+        ]
+    },
+    {
+        "id": "e395bb1cb43cdbb0",
+        "type": "ui-switch",
+        "z": "462ff919a1215d8a",
+        "name": "Ruang 4 - Lampu 2",
+        "label": "💡 Lampu 2",
+        "group": "ec79c81ce69dd24f",
+        "order": 5,
+        "width": 3,
+        "height": 1,
+        "passthru": false,
+        "decouple": false,
+        "topic": "pens/klp4/ruang4/lamp2",
+        "topicType": "str",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "line",
+        "onvalue": "1",
+        "onvalueType": "str",
+        "onicon": "lightbulb",
+        "oncolor": "#22c55e",
+        "offvalue": "0",
+        "offvalueType": "str",
+        "officon": "lightbulb-outline",
+        "offcolor": "#64748b",
+        "x": 810,
+        "y": 1095,
+        "wires": [
+            [
+                "7ce975dcf8a24b7a"
+            ]
+        ]
+    },
+    {
+        "id": "dd5f9e1107c0a837",
+        "type": "mqtt-broker",
+        "name": "Local Mosquitto Broker",
+        "broker": "172.19.229.77",
+        "port": 1883,
+        "clientid": "nodered-kuuraianto",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "f130f5633cd63a61",
+        "type": "ui-group",
+        "name": "Analitik & Grafik Suhu Gedung",
+        "page": "91cf2dedb2664e49",
+        "width": "12",
+        "height": "2",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "c94615b4ff7ffe30",
+        "type": "ui-base",
+        "name": "Ui gacor",
+        "path": "/dashboard",
+        "appIcon": "IotPensKel4",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": true
+    },
+    {
+        "id": "b01eaf7af856cc55",
+        "type": "ui-group",
+        "name": "Ruang 1 (Sensor AHT10)",
+        "page": "91cf2dedb2664e49",
+        "width": 6,
+        "height": "2",
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "427fbc273caee0db",
+        "type": "ui-group",
+        "name": "Ruang 2 (Simulator Potensio)",
+        "page": "91cf2dedb2664e49",
+        "width": 6,
+        "height": "2",
+        "order": 3,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "6e74a6594d898dc4",
+        "type": "ui-group",
+        "name": "Ruang 3 (Simulator Potensio)",
+        "page": "91cf2dedb2664e49",
+        "width": 6,
+        "height": "2",
+        "order": 4,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "ec79c81ce69dd24f",
+        "type": "ui-group",
+        "name": "Ruang 4 (Simulator Potensio)",
+        "page": "91cf2dedb2664e49",
+        "width": 6,
+        "height": "2",
+        "order": 5,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "91cf2dedb2664e49",
+        "type": "ui-page",
+        "name": "Kelompok 4",
+        "ui": "c94615b4ff7ffe30",
+        "path": "/page1",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "d52af07b5ba95cbb",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "tabs": [],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "d52af07b5ba95cbb",
+        "type": "ui-theme",
+        "name": "Theme Name",
+        "colors": {
+            "surface": "#fcfcfd",
+            "primary": "#0d74ce",
+            "bgPage": "#f9f9fb",
+            "groupBg": "#ffffff",
+            "groupOutline": "#d9d9e0"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "a03fcd0e9fe73199",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@flowfuse/node-red-dashboard": "1.34.1"
+        }
+    }
+]
