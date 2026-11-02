@@ -9,7 +9,7 @@ Sistem ini merupakan platform pemantauan suhu dan kelembapan serta kendali sakla
 | 1 | **\[Raja Ihsan S\]** | `[2124600108]` | **`ruang1`** | Sensor Digital **AHT10 (I2C)** + 2 LED (`GPIO25`, `GPIO26`) | 
 | 2 | **\[Hafiz Ahmad A.\]** | `[2124600106]` | **`ruang2`** | Sensor Analog **Potensiometer (ADC1)** + 2 LED (`GPIO25`, `GPIO26`) | 
 | 3 | **\[Faris Raihan F.\]** | `[2124600102]` | **`ruang3`** | Sensor Analog **Potensiometer (ADC1)** + 2 LED (`GPIO25`, `GPIO26`) | 
-| 4 | **\[Nadia Salsabila\]** | `[2124600103]` | **`ruang4`** | Sensor Analog **Potensiometer (ADC1)** + 2 LED (`GPIO25`, `GPIO26`) | 
+| 4 | **\[Nadya Labbaikatus Salsabila\]** | `[2124600103]` | **`ruang4`** | Sensor Analog **Potensiometer (ADC1)** + 2 LED (`GPIO25`, `GPIO26`) | 
 
 ## 2. Link Video Demo & Video Presentasi
 
