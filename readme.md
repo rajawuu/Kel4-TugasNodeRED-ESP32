@@ -17,7 +17,7 @@ Sistem ini merupakan platform pemantauan suhu dan kelembapan serta kendali sakla
 
 * **🎤 Link Video Presentasi Anggota (Penjelasan Kode & Flow):** [Klik di Sini untuk Menonton Video Presentasi Kelompok 4](https://youtu.be/WGyAdh6g35I?feature=shared)
 
-* **📄 File Tautan Video & Laporan Singkat:** [video/LINK.md](https://www.google.com/search?q=video/LINK.md) | [docs/laporan.pdf](Docs/Kel4_Laporan_IoT.pdf)
+* **📄 File Tautan Video & Laporan Singkat:** [https://youtu.be/WGyAdh6g35I?feature=shared](https://www.google.com/search?q=video/LINK.md) | [docs/laporan.pdf](Docs/Kel4_Laporan_IoT.pdf)
 
 *(Catatan: Akses tautan video sudah diatur ke publik / "Anyone with the link can view").*
 
