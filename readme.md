@@ -13,7 +13,7 @@ Sistem ini merupakan platform pemantauan suhu dan kelembapan serta kendali sakla
 
 ## 2. Link Video Demo & Video Presentasi
 
-* **🎥 Link Video Demonstrasi Sistem (Hardware + Dashboard):** [Klik di Sini untuk Menonton Video Demo Kelompok 4](https://drive.google.com/)
+* **🎥 Link Video Demonstrasi Sistem (Hardware + Dashboard):** [Klik di Sini untuk Menonton Video Demo Kelompok 4](https://youtu.be/7w1eD_7Nse8)
 
 * **🎤 Link Video Presentasi Anggota (Penjelasan Kode & Flow):** [Klik di Sini untuk Menonton Video Presentasi Kelompok 4](https://youtu.be/WGyAdh6g35I?feature=shared)
 
