@@ -168,8 +168,11 @@ net stop mosquitto
 ## 7. Screenshot Flow Node-RED & Dashboard
 
 ### Tampilan Editor Flow Node-RED (Wildcard + Function Router)
+![alt text](https://github.com/rajawuu/Kel4-TugasNodeRED-ESP32/blob/main/Docs/Images/Flow.png?raw=true)
 
 ### Tampilan Antarmuka Node-RED Command Center Dashboard
+![alt text](https://github.com/rajawuu/Kel4-TugasNodeRED-ESP32/blob/main/Docs/Images/Dashboard%20Suhu.jpeg?raw=true)
+![alt text](https://github.com/rajawuu/Kel4-TugasNodeRED-ESP32/blob/main/Docs/Images/Dashboard%20Kelembapan.jpeg?raw=true)
 
 ## 8. Hasil Pengujian Sistem (T1 – T12)
 
