@@ -1,0 +1,97 @@
+#include <WiFi.h>
+#include <EspMQTTClient.h>
+// --- KONFIGURASI IDENTITAS KELOMPOK & RUANGAN ---
+const char *KELOMPOK = "klp4"; // Ganti sesuai nomor kelompok
+const char *ROOM = "ruang4";   // GANTI: "ruang2", "ruang3", atau "ruang4"
+// --- PIN POTENSIOMETER (ADC1) & AKTUATOR LED ---
+#define POTPIN 34 // Wajib pin ADC1 (GPIO 32-39) agar tidak bentrok dengan Wi-Fi
+#define LED1PIN 25
+#define LED2PIN 26
+// --- KONFIGURASI WI-FI & BROKER LOKAL MOSQUITTO ---
+EspMQTTClient client(
+    "bakayarou",     // Ganti dengan SSID Wi-Fi / Hotspot
+    "raja12345", // Ganti dengan Password Wi-Fi
+    "172.19.229.77",      // Ganti dengan IPv4 Laptop Broker Mosquitto
+    "rajapens",                   // Username MQTT (kosongkan atau isi "iotpens")
+    "raja54321",                   // Password MQTT (kosongkan atau isi "rahasia123")
+    "kuuraianto45",                   // Client ID di-set di setup()
+    1883);
+String topicTemp, topicHum, topicLamp1, topicLamp2, topicStatus;
+String topicLamp1State, topicLamp2State;
+char clientIdBuffer[32];
+unsigned long lastSend = 0;
+// Fungsi baca rata-rata ADC agar nilai potensiometer bebas noise
+float readSmoothedADC(int pin)
+{
+    long sum = 0;
+    for (int i = 0; i < 16; i++)
+    {
+        sum += analogRead(pin);
+    }
+    return (float)sum / 16.0;
+}
+void setup()
+{
+    Serial.begin(115200);
+    analogReadResolution(12); // Resolusi ADC 12-bit (0 - 4095)
+    pinMode(POTPIN, INPUT);
+    pinMode(LED1PIN, OUTPUT);
+    pinMode(LED2PIN, OUTPUT);
+    digitalWrite(LED1PIN, LOW);
+    digitalWrite(LED2PIN, LOW);
+    String prefix = String("pens/") + KELOMPOK + "/" + ROOM + "/";
+    topicTemp = prefix + "temperature";
+    topicHum = prefix + "humidity";
+    topicLamp1 = prefix + "lamp1";
+    topicLamp2 = prefix + "lamp2";
+    topicStatus = prefix + "status";
+    topicLamp1State = prefix + "lamp1/state";
+    topicLamp2State = prefix + "lamp2/state";
+    snprintf(clientIdBuffer, sizeof(clientIdBuffer), "esp32-%s-%s", KELOMPOK, ROOM);
+    client.setMqttClientName(clientIdBuffer);
+    client.setKeepAlive(10);
+    client.enableLastWillMessage(topicStatus.c_str(), "offline", true);
+    client.enableDebuggingMessages();
+}
+void onConnectionEstablished()
+{
+    Serial.println("[MQTT] Tersambung ke Broker Lokal Mosquitto!");
+    client.publish(topicStatus, "online", true);
+    client.publish(topicLamp1State, digitalRead(LED1PIN) ? "1" : "0", true);
+    client.publish(topicLamp2State, digitalRead(LED2PIN) ? "1" : "0", true);
+    client.subscribe(topicLamp1, [](const String &payload)
+                     {
+if (payload == "1") {
+digitalWrite(LED1PIN, HIGH);
+client.publish(topicLamp1State, "1", true);
+} else if (payload == "0") {
+digitalWrite(LED1PIN, LOW);
+client.publish(topicLamp1State, "0", true);
+} });
+    client.subscribe(topicLamp2, [](const String &payload)
+                     {
+if (payload == "1") {
+digitalWrite(LED2PIN, HIGH);
+client.publish(topicLamp2State, "1", true);
+} else if (payload == "0") {
+digitalWrite(LED2PIN, LOW);
+client.publish(topicLamp2State, "0", true);
+} });
+}
+void loop()
+{
+    client.loop();
+    if (millis() - lastSend >= 5000)
+    {
+        lastSend = millis();
+        float adcVal = readSmoothedADC(POTPIN);
+        // Konversi ADC (0..4095) ke Suhu (18.0 C .. 40.0 C)
+        float t = 18.0 + (adcVal / 4095.0) * 22.0;
+        // Estimasi kelembapan berbanding terbalik terhadap suhu (82.0 % .. 38.0 %RH)
+        float h = 82.0 - ((t - 18.0) / 22.0) * 44.0;
+        client.publish(topicTemp, String(t, 1));
+        client.publish(topicHum, String(h, 1));
+        Serial.printf("[%s] POT(ADC:%.0f) Sent -> Suhu: %.1f C | Kelembapan: %.1f %%RH\n", ROOM,
+                      adcVal, t, h);
+    }
+}
